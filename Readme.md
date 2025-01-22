@@ -36,7 +36,7 @@ Bibliomane is a self-hosted solution designed to organize and manage eBooks with
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-repo/bibliomane.git
+git clone https://github.com/rjohn92/bibliomane.git
 cd bibliomane
 ```
 
