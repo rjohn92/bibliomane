@@ -11,3 +11,15 @@ services:
     volumes:
       - .:/app  # Optional: Mounts the current directory for easier development
     restart: unless-stopped
+
+    #healthcheck:
+   #   test: ["CMD", "curl", "-f", "http://${Domain}/bibliomane"]
+  #    interval: 1m
+ #     timeout: 10s
+#      retries: 3
+
+networks:
+  bibliomane_default:  # Reuse the shared network created by network_overview
+    external: true
+
+
