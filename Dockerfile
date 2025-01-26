@@ -1,29 +1,37 @@
-# Use official Node.js image as a base
-FROM node:18
-
-# Install PostgreSQL
-RUN apt-get update && apt-get install -y postgresql postgresql-contrib
+# Stage 1: Build the application
+FROM node:18 AS builder
 
 # Set the working directory inside the container
 WORKDIR /app
 
 # Copy package.json and package-lock.json
-COPY package.json package-lock.json ./
+COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
-# Copy the rest of the application files
+# Copy the rest of the application code
 COPY . .
 
-# Set up the PostgreSQL database (e.g., create tables, etc.)
-# You can either add SQL scripts here or do this in the app startup (e.g., server.js)
-RUN service postgresql start && \
-    sudo -u postgres psql -c "CREATE DATABASE mydatabase;" && \
-    sudo -u postgres psql -d mydatabase -c "CREATE TABLE IF NOT EXISTS library (id SERIAL PRIMARY KEY, title VARCHAR(255), author VARCHAR(255), isbn VARCHAR(13), year_released INT, format VARCHAR(5), file_size BIGINT);"
+# Stage 2: Create a lightweight production image
+FROM node:18-slim
 
-# Expose the port (3000 for Node.js)
+# Set the working directory
+WORKDIR /app
+
+# Copy only the built app and dependencies from the builder stage
+COPY --from=builder /app /app
+
+# Environment variables for the app
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Expose the app's port
 EXPOSE 3000
 
-# Command to start both PostgreSQL and the Node.js app
-CMD service postgresql start && node server.js
+# Start the application
+CMD ["node", "backend/server.js"]
+
+# Optional Health Check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/bibliomane || exit 1

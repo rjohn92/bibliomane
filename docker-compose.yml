@@ -4,10 +4,12 @@ services:
   app:
     build: .
     container_name: bibliomane
-    ports:
-      - "3000:3000"
     environment:
       - NODE_ENV=production
+      - PORT=${PORT}
+      - DOMAIN=${DOMAIN}
+    ports:
+      - "${PORT}:${PORT}"
     volumes:
       - .:/app  # Optional: Mounts the current directory for easier development
     restart: unless-stopped
@@ -18,8 +20,8 @@ services:
  #     timeout: 10s
 #      retries: 3
 
-networks:
-  bibliomane_default:  # Reuse the shared network created by network_overview
-    external: true
+#networks:
+#  bibliomane_default:
+#    external: true
 
 
