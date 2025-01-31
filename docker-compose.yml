@@ -8,10 +8,12 @@ services:
       - NODE_ENV=production
       - PORT=${PORT}
       - DOMAIN=${DOMAIN}
+      - LIBRARY=${LIBRARY}
     ports:
       - "${PORT}:${PORT}"
+    env_file: .env
     volumes:
-      - .:/app  # Optional: Mounts the current directory for easier development
+      - ${LIBRARY}:/app/hdd  # Optional: Mounts the current directory for easier development
     restart: unless-stopped
 
     #healthcheck:
@@ -20,8 +22,7 @@ services:
  #     timeout: 10s
 #      retries: 3
 
-#networks:
-#  bibliomane_default:
-#    external: true
 
-
+networks:
+  bibliomane_default:
+    name: bibliomane_default

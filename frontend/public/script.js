@@ -7,7 +7,9 @@ async function fetchBooks() {
 
   try {
     // Fetch data from the API
-    const response = await fetch('/bibliomane/api/books');
+    const response = await fetch('/bibiliomane/api/books');
+    console.log('Response Status:', response.status);
+
     if (!response.ok) throw new Error('Failed to fetch books');
 
     const books = await response.json();

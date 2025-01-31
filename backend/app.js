@@ -14,10 +14,10 @@ app.use(express.json()); // Add this line
 // Middleware to serve static files (SPA)
 app.use(express.static(path.join(__dirname, '../frontend/public')));
 
-// API routes prefixed with /bibliomane
-app.use('/bibliomane/api', routes);
+// Use API routes
+app.use('/bibiliomane/api', routes);
 
-// Catch-all route to serve the SPA for /bibliomane
+// Fallback to serve `index.html` for any other route
 app.get('/bibliomane*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/public/index.html'));
 });

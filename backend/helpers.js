@@ -1,4 +1,21 @@
+import { readdir } from 'fs/promises';
+import { extname } from 'path';
+
 import path from 'path';
+
+
+async function getBooks(library) {
+  try {
+    const files = await readdir(library);
+    const books = files.filter(file =>
+    ['.epud', '.pdf', '.mobi'].includes(extname(file).toLowerCase())
+    );
+    return books;
+  } catch (error) {
+    console.error('Error reading the books directory:', error);
+    throw Error('failed to load books.');
+  }
+}
 
 function extractTitle(file) {
     // Example: Extract the title from the file name

@@ -22,3 +22,5 @@ yarn-error.log*
 *.swp
 *.sublime-workspace
 *.sublime-project
+
+metadata.db
