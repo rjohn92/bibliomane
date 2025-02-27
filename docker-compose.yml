@@ -23,6 +23,9 @@ services:
 #      retries: 3
 
 
+#networks:
+#  bibliomane_default:
+#    name: bibliomane_default
 networks:
-  bibliomane_default:
-    name: bibliomane_default
+   nginx-proxy_default:
+     external: true

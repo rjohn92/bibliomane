@@ -1,8 +1,8 @@
 import { readdir } from 'fs/promises';
-import { extname } from 'path';
-
+// import { extname } from 'path';
+import axios from "axios";
+import dotenv from "dotenv";
 import path from 'path';
-
 
 async function getBooks(library) {
   try {
