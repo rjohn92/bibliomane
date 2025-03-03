@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+console.log("API KEY (from .env): ", process.env.API_KEY);
+
 const GOOGLE_BOOKS_API_KEY = process.env.API_KEY;
 
 /**
@@ -10,17 +12,19 @@ const GOOGLE_BOOKS_API_KEY = process.env.API_KEY;
  * Example: "George Orwell-1984(1949).EPUB"
  */
 function parseBookFilename(filename) {
-    const pattern = /^(.+?)-(.+?)\((\d{4})\)(.+)$/;
+    const pattern = /^(.+?)[-_](.+?)(?:\s\((\d{4})\))?$/;
     const match = filename.match(pattern);
 
     if (!match) {
         console.warn(`Filename format incorrect: ${filename}`);
-        return null;
+        //return null;
     }
+    const [title, author, year] = match.map(s => s.trim());
 
+    console.log(`🔍 Extracted Metadata: Title="${title}", Author="${author}", Year="${year || 'Unknown'}"`);
     return {
-        author: match[1].trim(),
-        title: match[2].trim(),
+        title: match[1].trim(),
+        author: match[2].trim(),
         year: match[3].trim(),
         format: match[4].trim(),
     };
@@ -33,34 +37,43 @@ function parseBookFilename(filename) {
  * @returns {Object} Book metadata
  */
 async function fetchBookMetadata(title, author) {
+    const queryWithAuthor = `intitle:${encodeURIComponent(title)}+inauthor:${encodeURIComponent(author)}`;
+    const queryTitleOnly = `intitle:${encodeURIComponent(title)}`;
+
+    const url = `https://www.googleapis.com/books/v1/volumes?q=${queryWithAuthor}&key=${GOOGLE_BOOKS_API_KEY}`;
+
     try {
-        const query = `intitle:${encodeURIComponent(title)}+inauthor:${encodeURIComponent(author)}`;
-        const url = `https://www.googleapis.com/books/v1/volumes?q=${query}&key=${GOOGLE_BOOKS_API_KEY}`;
+        let response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP Error! Status: ${response.status}`);
 
-        const response = await axios.get(url);
-        const books = response.data.items;
+        let data = await response.json();
+        if (!data.items || data.items.length === 0) {
+            console.warn(`❌ No results for "${title}" by "${author}", trying title-only search...`);
+            response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${queryTitleOnly}&key=${GOOGLE_BOOKS_API_KEY}`);
+            if (!response.ok) throw new Error(`HTTP Error! Status: ${response.status}`);
+            data = await response.json();
+        }
 
-        if (!books || books.length === 0) {
-            console.warn(`No results found for: ${title} by ${author}`);
+        if (!data.items || data.items.length === 0) {
+            console.warn(`❌ Still no results for "${title}", skipping.`);
             return null;
         }
 
-        // Get the first book result
-        const bookInfo = books[0].volumeInfo;
-
+        const bookInfo = data.items[0].volumeInfo;
         return {
             title: bookInfo.title || title,
-            author: bookInfo.authors ? bookInfo.authors.join(", ") : author,
-            publishedYear: bookInfo.publishedDate ? bookInfo.publishedDate.substring(0, 4) : "Unknown",
+            author: bookInfo.authors?.join(", ") || author,
+            publishedYear: bookInfo.publishedDate?.substring(0, 4) || "Unknown",
             description: bookInfo.description || "No description available",
             categories: bookInfo.categories || [],
-            isbn: bookInfo.industryIdentifiers ? bookInfo.industryIdentifiers.map(i => i.identifier).join(", ") : "N/A",
-            coverImage: bookInfo.imageLinks ? bookInfo.imageLinks.thumbnail : null,
+            isbn: bookInfo.industryIdentifiers?.map(i => i.identifier).join(", ") || "N/A",
+            coverImage: bookInfo.imageLinks?.thumbnail || null,
         };
     } catch (error) {
-        console.error("Error fetching book metadata:", error.message);
+        console.error(`❌ Error fetching metadata: ${error.message}`);
         return null;
     }
 }
+
 
 export { parseBookFilename, fetchBookMetadata };
