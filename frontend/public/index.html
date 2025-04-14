@@ -1,38 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Library</title>
-  <!-- Link to external CSS file -->
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 Book Library</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div id="app">
+        <nav>
+            <input type="text" id="search" placeholder="🔍 Search books..." onkeyup="searchBooks()">
+        </nav>
+        
+        <section id="library">
+            <h1>📚 E-Book Library</h1>
+            <table>
+                <thead> 
+                    <tr>
+                        <!-- <th>Select</th> -->
+                        <th>Cover</th>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Year</th>
+                        <th>Genre</th>
+                        <th>Deliver To</th>
+                        
+                    </tr>
+                </thead>
+                <tbody id="book-table"></tbody>
+            </table>
+            
+            <div id="pagination">
+                <button id="prevPage">⬅️ Prev</button>
+                <span id="pageInfo"></span>
+                <button id="nextPage">Next ➡️</button>
+            </div>
+        </section>
+    </div>
 
-  <h1>Bibliomane: Book Metadata</h1>
-
-  <!-- Loading message -->
-  <div id="loading" class="loading">Loading books...</div>
-
-  <!-- Error message -->
-  <div id="error" class="error" style="display: none;">Error loading books. Please try again later.</div>
-
-  <!-- Table for displaying books -->
-  <table id="booksTable" style="display: none;">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>File Name</th>
-        <th>File Path</th>
-        <th>File Size (KB)</th>
-        <th>Last Modified</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Rows will be dynamically populated here -->
-    </tbody>
-  </table>
-
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

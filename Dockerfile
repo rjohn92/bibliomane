@@ -1,37 +1,32 @@
-# Stage 1: Build the application
-FROM node:18 AS builder
+FROM node:20-slim
 
-# Set the working directory inside the container
+# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Install OS-level dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        curl \
+        sqlite3 \
+        calibre \
+        fonts-noto-color-emoji && \
+    rm -rf /var/lib/apt/lists/*
+
+# Set environment before installing deps
+ENV NODE_ENV=production
+# ENV PORT=3001
+
+# Install Node deps
 COPY package*.json ./
+RUN npm install --omit=dev
 
-# Install dependencies
-RUN npm install
-
-# Copy the rest of the application code
+# Copy source code
 COPY . .
 
-# Stage 2: Create a lightweight production image
-FROM node:18-slim
+# Expose port
+EXPOSE 3001
 
-# Set the working directory
-WORKDIR /app
+COPY entrypoint.sh /app/entrypoint.sh
 
-# Copy only the built app and dependencies from the builder stage
-COPY --from=builder /app /app
-
-# Environment variables for the app
-ENV NODE_ENV=production
-ENV PORT=3000
-
-# Expose the app's port
-EXPOSE 3000
-
-# Start the application
-CMD ["node", "backend/server.js"]
-
-# Optional Health Check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/bibliomane || exit 1
+# Start the app
+ENTRYPOINT ["/app/entrypoint.sh"]

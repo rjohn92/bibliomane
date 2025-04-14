@@ -7,36 +7,15 @@ console.log("API KEY (from .env): ", process.env.API_KEY);
 
 const GOOGLE_BOOKS_API_KEY = process.env.API_KEY;
 
-/**
- * Extract metadata (title, author, year) from book filenames.
- * Example: "George Orwell-1984(1949).EPUB"
- */
-function parseBookFilename(filename) {
-    const pattern = /^(.+?)[-_](.+?)(?:\s\((\d{4})\))?$/;
-    const match = filename.match(pattern);
-
-    if (!match) {
-        console.warn(`Filename format incorrect: ${filename}`);
-        //return null;
-    }
-    const [title, author, year] = match.map(s => s.trim());
-
-    console.log(`🔍 Extracted Metadata: Title="${title}", Author="${author}", Year="${year || 'Unknown'}"`);
-    return {
-        title: match[1].trim(),
-        author: match[2].trim(),
-        year: match[3].trim(),
-        format: match[4].trim(),
-    };
-}
 
 /**
  * Fetch book metadata from Google Books API.
  * @param {string} title
  * @param {string} author
+ * @param {string} yearReleased
  * @returns {Object} Book metadata
  */
-async function fetchBookMetadata(title, author) {
+async function fetchBookMetadata(title, author, yearReleased) {
     const queryWithAuthor = `intitle:${encodeURIComponent(title)}+inauthor:${encodeURIComponent(author)}`;
     const queryTitleOnly = `intitle:${encodeURIComponent(title)}`;
 
@@ -61,13 +40,13 @@ async function fetchBookMetadata(title, author) {
 
         const bookInfo = data.items[0].volumeInfo;
         return {
-            title: bookInfo.title || title,
-            author: bookInfo.authors?.join(", ") || author,
-            publishedYear: bookInfo.publishedDate?.substring(0, 4) || "Unknown",
+            // title: bookInfo.title || title,
+            // author: bookInfo.authors?.join(", ") || author,
+            // publishedYear: bookInfo.publishedDate?.substring(0, 4) || "Unknown",
             description: bookInfo.description || "No description available",
             categories: bookInfo.categories || [],
             isbn: bookInfo.industryIdentifiers?.map(i => i.identifier).join(", ") || "N/A",
-            coverImage: bookInfo.imageLinks?.thumbnail || null,
+            coverURL: bookInfo.imageLinks?.thumbnail || null,
         };
     } catch (error) {
         console.error(`❌ Error fetching metadata: ${error.message}`);
@@ -76,4 +55,4 @@ async function fetchBookMetadata(title, author) {
 }
 
 
-export { parseBookFilename, fetchBookMetadata };
+export { fetchBookMetadata };

@@ -1,62 +1,89 @@
-/* Basic page styling */
 body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
   background-color: #f4f4f4;
-  color: #333;
+  font-family: Arial, sans-serif;
+  padding: 20px;
 }
 
-h1 {
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 20px;
+#app {
+  max-width: 900px;
+  margin: auto;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+nav {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 10px;
+}
+
+input {
+  width: 80%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
 }
 
 table {
-  width: 80%;
-  margin: 30px auto;
+  width: 100%;
   border-collapse: collapse;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin-top: 10px;
 }
 
 th, td {
-  padding: 15px;
+  padding: 10px;
   text-align: left;
   border-bottom: 1px solid #ddd;
 }
 
 th {
-  background-color: #2c3e50;
-  color: #fff;
+  background: #007bff;
+  color: white;
 }
 
-tr:hover {
-  background-color: #ecf0f1;
+td img {
+  max-width: 50px;
+  border-radius: 5px;
 }
 
-.file-size {
-  font-weight: bold;
-  color: #e74c3c;
+button {
+  padding: 8px 12px;
+  margin: 5px;
+  background: #28a745;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
 }
 
-a {
-  color: #3498db;
-  text-decoration: none;
+button:hover {
+  background: #218838;
 }
 
-a:hover {
-  text-decoration: underline;
+/* Pagination */
+#pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
+#pagination button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+#pagination button:hover {
+  background: #0056b3;
+}
+
+@media (max-width: 600px) {
   table {
-    width: 100%;
-    margin: 10px;
-  }
-
-  th, td {
-    font-size: 14px;
+      font-size: 14px;
   }
 }

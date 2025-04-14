@@ -1,54 +1,129 @@
 import fs from "fs";
 import path from "path";
+import { processBook } from "./processBook.js"; // New helper function
+import { readdir, stat } from "fs/promises";
+import { extractMetadataFromFolder, saveCoverURL, bookFileExists, ensureCoversFolder, validFolderFormat, checkDuplicateTitles, coverExists, updateCover, hasEnoughMetadata } from "./helpers.js";
+import { dbPromise } from "../database/db.js";
 import { addBook } from "./addBook.js";
-import { fetchBookMetadata } from "./googleBooksService.js";// Will be implemented later
+import { fetchBookMetadata } from "./googleBooksService.js";
 
-const LIBRARY_PATH = "/app/hdd/Books"; // Change this to your actual books directory
-const filenames = fs.readdirSync(LIBRARY_PATH);
+const db = await dbPromise; // Ensure database is ready
 
-/**
- * Scans the book directory and adds new books to the database.
- */
-async function scanLibrary() {
-    console.log("📚 Scanning book library...");
-    console.log(filenames)
-    for (const filename of filenames) {    
-        console.log(`📖 Checking: ${filename}`); // Debugging output
-        // Extract metadata from filename (Example: "Hatchet-Gary Paulsen(1986).epub")
-        const regex = /^(.+?)\s*-\s*([\w\s.,'-]+?)(?:\s*\((\d{4})\))?\.(epub|pdf)$/i;
-        const match = filename.match(regex);
+const LIBRARY_PATH = "/app/hdd/books"; // Books directory
 
-        if (!match) {
-            console.warn(`❗ Skipping file (bad format): ${filename} ❗`);
+console.log("📚 Scanning book library...");
+
+async function scanLibrary(library_source, db) {
+    try {
+        const bookFolders = await readdir(library_source);
+
+        for (const folder of bookFolders) {
+            const currPath = path.join(library_source, folder);
+            const stats = await stat(currPath);
+
+            // Check if each item being looped over is a folder
+            if (!stats.isDirectory()) {
+                console.log(`❗ Skipping: ${folder} (Not a directory) ❗`);
+                continue;
+            }
+
+            console.log(`📂 Processing: ${folder}`);
+
+            // make sure name is valid first
+            const isValidName = validFolderFormat(folder);
+            if (!isValidName) {
+                console.log(`🚨 Folder ${folder} is in invalid format. Skipping...`);
+                continue;
+            } else {
+                console.log(`✅ Folder ${folder} is valid format.`);
+            }
+
+
+
+            // ✅ Extract title, author, and year from the object validatedName
+            const { title, author, publishedYear } = isValidName;
+            console.log(isValidName)
+
+            // ✅ Find the book file
+            const bookFile = await bookFileExists(currPath);
+            if (!bookFile) {
+                console.log(`🚨 Book file doesn't exist! Skipping ...`);
+                continue;
+            }
+            console.log(`✅ ${title} eBook found at: ${bookFile}`)
+
+            /**  ✅ Since the folder format is valid , and we have an eBook let's see if we have 
+               the covers folder and if not we'll create one
+            **/   
+            const coversDir = ensureCoversFolder(currPath);
+            console.log(`✅ Covers path for ${title} at: ${coversDir}`);
+
+            let coverFilePath = null;
+            let acutalCoversFilePath;
+            // ✅ Check if title exists in database before we do further processing
+            const existsInDB =  await checkDuplicateTitles(title, author, publishedYear, db);
+            if (existsInDB) {
+                console.log(`✅ Book already exists: ${title} (${publishedYear}) by ${author}. Checking if cover exists...`);
+                // Check if coversFile exists
+                coverFilePath = coverExists(coversDir);
+                if (coverFilePath) {
+                    acutalCoversFilePath = path.join(coversDir, coverFilePath);
+                    console.log(`✅ Cover exists at: ${acutalCoversFilePath}. Updating cover path to: ${acutalCoversFilePath}...`);
+                    await updateCover(title, author, publishedYear, db, coversDir, coverFilePath)
+                } else {
+                    console.log(`🚨 Cover File doesn't exist for: ${title} (${publishedYear}) by ${author}`);
+                }
+            } else {
+                console.log(`🚨 ${title} (${publishedYear}) by ${author} not found in Database. Trying to add...`);
+            }
+            
+            console.log(`🚨 About to check metadata for ${title}...`);
+            // check if we have enough metadata and still need to run fetch function
+            const enoughMetadata = await hasEnoughMetadata(title, author, publishedYear, db)
+
+            console.log(`🔍 Checking if enough metadata: ${enoughMetadata}`)
+            if (!enoughMetadata) {
+
+            // Get the rest of the metadata of the book
+            const fetchedMetadata = await fetchBookMetadata(title, author, publishedYear);
+
+
+            const donwloadedCover = await saveCoverURL(fetchedMetadata?.coverURL,  title, coversDir);
+            if (!donwloadedCover) {
+                console.log(`🚨 Issue downloading cover for: ${title}` )
+            }
+
+            // Combine the missing metadata with what we got before
+            const completeMetadata = {
+                title: title,  // Title from folder
+                author: author, // Author from folder
+                publishedYear: publishedYear, // Year from folder
+                description: fetchedMetadata?.description || "No description available",
+                categories: fetchedMetadata?.categories?.join(", ") || "Unknown",
+                isbn: fetchedMetadata?.isbn || "N/A",
+                coverPath: acutalCoversFilePath || donwloadedCover,
+                filePath: bookFile
+            };
+
+            console.log(completeMetadata);
+
+            await addBook(
+                completeMetadata.title,
+                completeMetadata.author,
+                completeMetadata.publishedYear,
+                completeMetadata.description,
+                completeMetadata.categories,
+                completeMetadata.isbn,
+                completeMetadata.filePath,
+                completeMetadata.coverPath, 
+            );
+            console.log(`✅ Book added with coverPath: ${completeMetadata.coverPath || "No cover found"}`);
+            } 
         }
-        const [_, title, author, year, format] = match;
-        console.log(`✅ Parsed: Title="${title}", Author="${author}", Year="${year || "N/A"}", Format="${format}"`);
-        
-
-        //const [_, title, author, year] = match;
-
-        // Fetch book metadata
-        const metadata = await fetchBookMetadata(title, author);
-        console.log(metadata);
-        if (!metadata) {
-            console.warn(`❌ No metadata found for: ${title} by ${author}`);
-        }
-    };
-
-
-        // Add book to the database
-        await addBook(
-            metadata.title,
-            metadata.author,
-            metadata.publishedYear || year,
-            metadata.description,
-            metadata.categories.join(", "),
-            metadata.isbn,
-            filePath,
-            metadata.coverImage // URL of the book cover
-        );
+    } catch (error) {
+        console.error("❌ Error scanning library:", error.message);
     }
+}
 
-    console.log("✅ Library scan complete.");
-
-scanLibrary();
+await scanLibrary(LIBRARY_PATH, db);
+console.log("✅ Library scan complete.");

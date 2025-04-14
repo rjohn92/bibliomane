@@ -1,5 +1,16 @@
 import { dbPromise } from "../database/db.js";
 import fetch from "node-fetch";
+import fs from "fs";
+import path from "path";
+import { saveCoverURL } from "./helpers.js";
+import { countReset } from "console";
+
+// const COVER_STORAGE_PATH = "/app/hdd/covers"; // Your books directory
+
+// // ✅ Ensure the covers directory exists
+// if (!fs.existsSync(COVER_STORAGE_PATH)) {
+//     fs.mkdirSync(COVER_STORAGE_PATH, { recursive: true }); // Create folder if it doesn't exist
+// }
 
 /**
  * Adds a book to the database, storing the cover as a BLOB.
@@ -10,41 +21,24 @@ import fetch from "node-fetch";
  * @param {string} categories
  * @param {string} isbn
  * @param {string} filePath
- * @param {string} coverURL
+ * @param {Buffer|string|null} coverURL - Either a Buffer, a URL, or null
  */
 async function addBook(title, author, year, description, categories, isbn, filePath, coverURL) {
     try {
         const db = await dbPromise;
 
-        // Check if book already exists
-        const existingBook = await db.get("SELECT * FROM books WHERE file_path = ?", [filePath]);
-        if (existingBook) {
-            console.log(`⚠️ Book already exists: ${title} (${year})`);
-            return;
-        }
+        // Derive the book's folder path from the filePath
+        const bookFolderPath = path.dirname(filePath);
 
-        // Fetch cover image as BLOB
-        let coverBuffer = null;
-        if (coverURL) {
-            try {
-                const response = await fetch(coverURL);
-                if (response.ok) {
-                    coverBuffer = Buffer.from(await response.arrayBuffer());
-                } else {
-                    console.warn(`⚠️ Failed to fetch cover for "${title}"`);
-                }
-            } catch (error) {
-                console.warn(`⚠️ Cover fetch error: ${error.message}`);
-            }
-        }
-
+         // Use saveCoverURL to fetch and save the cover
+         const coverPath = await saveCoverURL(coverURL, title, bookFolderPath);
         // Insert into database
         await db.run(
-            "INSERT INTO books (title, author, year, description, categories, isbn, cover, file_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            [title, author, year, description, categories, isbn, coverBuffer, filePath]
+            "INSERT INTO books (title, author, year, description, categories, isbn, coverPath, filePath) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            [title, author, year, description, categories, isbn, coverPath, filePath]
         );
 
-        console.log(`✅ Added book: ${title} (${year})`);
+        console.log(`✅ Added book: ${title} (${year}) with cover at ${coverPath || "No cover found"}`);
     } catch (error) {
         console.error(`❌ Error adding book: ${error.message}`);
     }

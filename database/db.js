@@ -4,7 +4,7 @@ import fs from "fs";
 
 // Open or create the SQLite database
 const dbPromise = open({
-    filename: "./bibliomane.db", // The SQLite database file
+    filename: "./database/bibliomane.db", // The SQLite database file
     driver: sqlite3.Database,
 });
 
@@ -21,8 +21,8 @@ async function initializeDB() {
             description TEXT,
             categories TEXT,
             isbn TEXT,
-            cover BLOB,  -- Stores book cover as binary data (BLOB)
-            file_path TEXT NOT NULL UNIQUE  -- Store the actual file path of the book
+            coverPath TEXT, 
+            filePath TEXT NOT NULL UNIQUE  -- Store the actual file path of the book
         );
     `);
 
@@ -32,4 +32,4 @@ async function initializeDB() {
 initializeDB(); // Run the function when the script is executed
 
 
-export { dbPromise, initializeDB };
+export {dbPromise, initializeDB};

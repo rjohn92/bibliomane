@@ -4,28 +4,13 @@ services:
   app:
     build: .
     container_name: bibliomane
-    environment:
-      - NODE_ENV=production
-      - PORT=${PORT}
-      - DOMAIN=${DOMAIN}
-      - LIBRARY=${LIBRARY}
-    ports:
-      - "${PORT}:${PORT}"
     env_file: .env
+    ports:
+      - "3001:3001"
     volumes:
-      - ${LIBRARY}:/app/hdd  # Optional: Mounts the current directory for easier development
+      - ${LIBRARY}:/app/hdd/books  # Optional: Mounts the current directory for easier development
     restart: unless-stopped
 
-    #healthcheck:
-   #   test: ["CMD", "curl", "-f", "http://${Domain}/bibliomane"]
-  #    interval: 1m
- #     timeout: 10s
-#      retries: 3
-
-
-#networks:
-#  bibliomane_default:
-#    name: bibliomane_default
 networks:
    nginx-proxy_default:
      external: true
