@@ -196,3 +196,50 @@ export async function checkDuplicateTitles(title, author, year, database) {
     console.log(`❌ Error checking for duplicate book: ${error.message}`);
   }
 }
+
+export function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+
+// 🎨 Render Books in Table
+export function renderBooks() {
+    const tableBody = document.getElementById("book-table");
+    tableBody.innerHTML = "";
+
+    booksData.forEach(book => {
+        let coverPath;
+
+        if (book.coverPath) {
+            const relativePath = book.coverPath.replace("/app/hdd/books/", "");
+            coverPath = `${basePath}/books/` +
+              relativePath
+                .split("/")
+                .map(segment => encodeURIComponent(segment))
+                .join("/");
+        } else {
+            coverPath = `${basePath}/images/old-vintage-book-clipart-design-illustration-free-png.png`;
+        }
+
+    
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>
+                <img src="${coverPath}" 
+                     alt="Cover" width="50" 
+                     onerror="this.src='/images/old-vintage-book-clipart-design-illustration-free-png.png'">
+            </td>
+            <td>${book.title}</td>
+            <td>${book.author}</td>
+            <td>${book.year || "N/A"}</td>
+            <td>${book.categories || "N/A"}</td>
+            <td>
+                <button class="kindle-btn" data-file="${book.filePath}">📩 Kindle</button>
+                <button class="kobo-btn" data-file="${book.filePath}">📩 Kobo</button>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
+
+    attachEventListeners();
+}

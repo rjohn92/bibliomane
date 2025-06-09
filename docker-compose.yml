@@ -5,8 +5,8 @@ services:
     build: .
     container_name: bibliomane
     env_file: .env
-    ports:
-      - "3001:3001"
+#    ports:
+#      - "3001:3001"
     volumes:
       - ${LIBRARY}:/app/hdd/books  # Optional: Mounts the current directory for easier development
     restart: unless-stopped

@@ -10,6 +10,10 @@
 # Local or system-specific directories (adjust based on your project)
 /hdd
 
+# node_modules 
+/node_modules
+
+
 # Optional logs and debugging files
 *.log
 npm-debug.log*

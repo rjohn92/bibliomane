@@ -1,21 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📚 Book Library</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div id="app">
         <nav>
-            <input type="text" id="search" placeholder="🔍 Search books..." onkeyup="searchBooks()">
+    <input type="text" id="searchTitle" placeholder="Search by Title" />
+    <input type="text" id="searchAuthor" placeholder="Search by Author" />
+    <input type="number" id="searchYear" placeholder="Search by Year" />
+    <input type="text" id="searchISBN" placeholder="Search by ISBN" />
+
+                <!-- Search Button -->
+                <button id="searchBtn">Search</button>
+
+                <!-- Reset Button -->
+                <button id="resetBtn">Reset</button>
+            </div>
         </nav>
-        
+
         <section id="library">
             <h1>📚 E-Book Library</h1>
             <table>
-                <thead> 
+                <thead>
                     <tr>
                         <!-- <th>Select</th> -->
                         <th>Cover</th>
@@ -24,12 +36,12 @@
                         <th>Year</th>
                         <th>Genre</th>
                         <th>Deliver To</th>
-                        
+
                     </tr>
                 </thead>
                 <tbody id="book-table"></tbody>
             </table>
-            
+
             <div id="pagination">
                 <button id="prevPage">⬅️ Prev</button>
                 <span id="pageInfo"></span>
@@ -38,6 +50,7 @@
         </section>
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
+
 </html>

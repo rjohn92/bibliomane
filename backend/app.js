@@ -1,5 +1,7 @@
 import express from "express";
 import path from "path";
+import jwt from "jsonwebtoken";
+
 import { fileURLToPath } from "url";
 import { router } from "../routes/index.js"; // ✅ Only importing `router`
 
@@ -23,10 +25,28 @@ app.use("/images", express.static(path.resolve(__dirname, "../frontend/public/im
 // 📌 Use API routes
 app.use("/api", router);
 
+app.get('/whoami', (req, res) => {
+  console.log("Request Headers:", req.headers);  // Log all headers to see what's coming through
+
+  res.json({
+    // kobo_email: req.headers['x-kobo-email'],
+    user_id: req.headers['x-user'],
+    email: req.headers['x-email'],
+    preferred_username: req.headers['x-username'],
+    kobo_email: req.headers['x-kobo-email'],
+    kindle_email: req.headers['x-kindle-email'],
+
+  });
+});
+
+
+
 // 📌 Fallback for SPA (Single Page App)
 app.get("*", (req, res) => {
   res.sendFile(path.resolve(__dirname, "../frontend/public/index.html"));
 });
+
+
 
 // 📌 Catch-all error handler
 app.use((err, req, res, next) => {

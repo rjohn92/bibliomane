@@ -22,7 +22,7 @@ async function processBook(metadata, bookFolderPath, bookFile, coverFilePath) {
         metadata.author,
         metadata.publishedYear,
         "No description available",
-        "Unknown", // Categories (can be fetched later)
+        "Unknown", // categories (can be fetched later)
         "N/A", // ISBN (can be fetched later)
         path.join(bookFolderPath, bookFile),
         coverFilePath

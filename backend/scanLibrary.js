@@ -55,20 +55,20 @@ async function scanLibrary(library_source, db) {
             /**  ✅ Since the folder format is valid , and we have an eBook let's see if we have 
                the covers folder and if not we'll create one
             **/   
-            const coversDir = ensureCoversFolder(currPath);
+            const coversDir = await ensureCoversFolder(currPath);
             console.log(`✅ Covers path for ${title} at: ${coversDir}`);
 
             let coverFilePath = null;
-            let acutalCoversFilePath;
+            let actualCoversFilePath;
             // ✅ Check if title exists in database before we do further processing
             const existsInDB =  await checkDuplicateTitles(title, author, publishedYear, db);
             if (existsInDB) {
                 console.log(`✅ Book already exists: ${title} (${publishedYear}) by ${author}. Checking if cover exists...`);
                 // Check if coversFile exists
-                coverFilePath = coverExists(coversDir);
+                coverFilePath = await coverExists(coversDir);
                 if (coverFilePath) {
-                    acutalCoversFilePath = path.join(coversDir, coverFilePath);
-                    console.log(`✅ Cover exists at: ${acutalCoversFilePath}. Updating cover path to: ${acutalCoversFilePath}...`);
+                    actualCoversFilePath = path.join(coversDir, coverFilePath);
+                    console.log(`✅ Cover exists at: ${actualCoversFilePath}. Updating cover path to: ${actualCoversFilePath}...`);
                     await updateCover(title, author, publishedYear, db, coversDir, coverFilePath)
                 } else {
                     console.log(`🚨 Cover File doesn't exist for: ${title} (${publishedYear}) by ${author}`);
@@ -88,8 +88,8 @@ async function scanLibrary(library_source, db) {
             const fetchedMetadata = await fetchBookMetadata(title, author, publishedYear);
 
 
-            const donwloadedCover = await saveCoverURL(fetchedMetadata?.coverURL,  title, coversDir);
-            if (!donwloadedCover) {
+            const downloadedCover = await saveCoverURL(fetchedMetadata?.coverURL,  title, coversDir);
+            if (!downloadedCover) {
                 console.log(`🚨 Issue downloading cover for: ${title}` )
             }
 
@@ -101,7 +101,7 @@ async function scanLibrary(library_source, db) {
                 description: fetchedMetadata?.description || "No description available",
                 categories: fetchedMetadata?.categories?.join(", ") || "Unknown",
                 isbn: fetchedMetadata?.isbn || "N/A",
-                coverPath: acutalCoversFilePath || donwloadedCover,
+                coverPath: actualCoversFilePath || downloadedCover,
                 filePath: bookFile
             };
 
