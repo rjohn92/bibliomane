@@ -30,9 +30,9 @@ app.get('/whoami', (req, res) => {
 
   res.json({
     // kobo_email: req.headers['x-kobo-email'],
-    user_id: req.headers['x-user'],
-    email: req.headers['x-email'],
-    preferred_username: req.headers['x-username'],
+    user: req.headers['x-auth-request-user'],
+    email: req.headers['x-auth-request-email'],
+    preferred_username: req.headers['x-auth-request-preferred-username'],
     kobo_email: req.headers['x-kobo-email'],
     kindle_email: req.headers['x-kindle-email'],
 
