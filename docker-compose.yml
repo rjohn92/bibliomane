@@ -11,6 +11,6 @@ services:
       - ${LIBRARY}:/app/hdd/books  # Optional: Mounts the current directory for easier development
     restart: unless-stopped
 
-networks:
-   nginx-proxy_default:
-     external: true
+# networks:
+#    nginx-proxy_default:
+#      external: true
