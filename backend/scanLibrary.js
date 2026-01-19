@@ -107,16 +107,16 @@ async function scanLibrary(library_source, db) {
 
             console.log(completeMetadata);
 
-            await addBook(
-                completeMetadata.title,
-                completeMetadata.author,
-                completeMetadata.publishedYear,
-                completeMetadata.description,
-                completeMetadata.categories,
-                completeMetadata.isbn,
-                completeMetadata.filePath,
-                completeMetadata.coverPath, 
-            );
+        await addBook(db, {
+        title: completeMetadata.title,
+        author: completeMetadata.author,
+        year: completeMetadata.publishedYear,
+        description: completeMetadata.description,
+        categories: completeMetadata.categories,
+        isbn: completeMetadata.isbn,
+        filePath: completeMetadata.filePath,
+        coverPath: completeMetadata.coverPath,
+        });
             console.log(`✅ Book added with coverPath: ${completeMetadata.coverPath || "No cover found"}`);
             } 
         }

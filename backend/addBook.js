@@ -23,25 +23,15 @@ import { countReset } from "console";
  * @param {string} filePath
  * @param {Buffer|string|null} coverURL - Either a Buffer, a URL, or null
  */
-async function addBook(title, author, year, description, categories, isbn, filePath, coverURL) {
-    try {
-        const db = await dbPromise;
-
-        // Derive the book's folder path from the filePath
-        const bookFolderPath = path.dirname(filePath);
-
-         // Use saveCoverURL to fetch and save the cover
-         const coverPath = await saveCoverURL(coverURL, title, bookFolderPath);
-        // Insert into database
-        await db.run(
-            "INSERT INTO books (title, author, year, description, categories, isbn, coverPath, filePath) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            [title, author, year, description, categories, isbn, coverPath, filePath]
-        );
-
-        console.log(`✅ Added book: ${title} (${year}) with cover at ${coverPath || "No cover found"}`);
-    } catch (error) {
-        console.error(`❌ Error adding book: ${error.message}`);
-    }
+// backend/addBook.js
+export async function addBook(db, {
+  title, author, year,
+  description, categories, isbn,
+  filePath, coverPath
+}) {
+  await db.run(
+    `INSERT INTO books (title, author, year, description, categories, isbn, coverPath, filePath)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [title, author, year, description, categories, isbn, coverPath, filePath]
+  );
 }
-
-export { addBook };

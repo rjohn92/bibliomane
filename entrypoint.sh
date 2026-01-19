@@ -3,12 +3,6 @@ set -euo pipefail  # Stop if any command fails
 
 echo "📦 Bootstrapping Bibliomane..."
 
-# echo "🔧 Installing Dependencies..."
-# apt update && apt install -y sqlite3 nodejs npm fonts-noto-color-emoji
-
-# echo "📦 Installing Node Modules..."
-# npm install
-
 echo "🌐 Initializing  Database..."
 node database/db.js
 

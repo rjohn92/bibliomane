@@ -8,50 +8,37 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("resetBtn").addEventListener("click", () => {
         // Reset all search fields dynamically by iterating over them
         resetSearchFields();
-
-        // Optionally, reset the table to show all books again
-        const rows = document.querySelectorAll("tbody tr");
-        rows.forEach(row => row.style.display = "");
+        loadBooks(currentPage)
     });
         // Add event listener to Search Button
     document.getElementById("searchBtn").addEventListener("click", () => {
-        searchBooks('Title');  // You can choose a default search field or combine multiple fields.
-        searchBooks('Author');
-        searchBooks('Year');
-        searchBooks('ISBN');
+    searchBooksCombined();
     });
-});
+    });
 
-function searchBooks(type) {
-    // Ensure the field exists before trying to access its value
-    const searchField = document.getElementById(`search${capitalize(type)}`);
-    console.log("Searching for : ")
-    // Check if the field exists, otherwise return early
-    if (!searchField) {
-        console.error(`Search field with id 'search${capitalize(type)}' not found.`);
-        return;
-    }
 
-    const searchValue = searchField.value.toLowerCase();
+    function searchBooksCombined() {
+    const qTitle  = document.getElementById("searchTitle").value.trim().toLowerCase();
+    const qAuthor = document.getElementById("searchAuthor").value.trim().toLowerCase();
+    const qYear   = document.getElementById("searchYear").value.trim().toLowerCase();
+    const qIsbn   = document.getElementById("searchISBN").value.trim().toLowerCase();
 
-    // Filter the books based on the search criteria
     const filteredBooks = booksData.filter(book => {
-        const titleMatch = book.title.toLowerCase().includes(searchValue);
-        const authorMatch = book.author.toLowerCase().includes(searchValue);
-        const yearMatch = book.year.toString().includes(searchValue);
-        const isbnMatch = book.isbn.toLowerCase().includes(searchValue);
+        const title  = (book.title || "").toLowerCase();
+        const author = (book.author || "").toLowerCase();
+        const year   = String(book.year ?? "").toLowerCase();
+        const isbn   = String(book.isbn ?? "").toLowerCase();
 
-        if (type === 'title' && titleMatch) return true;
-        if (type === 'author' && authorMatch) return true;
-        if (type === 'year' && yearMatch) return true;
-        if (type === 'isbn' && isbnMatch) return true;
-
-        return false; // If no match, exclude the book
+        if (qTitle  && !title.includes(qTitle)) return false;
+        if (qAuthor && !author.includes(qAuthor)) return false;
+        if (qYear   && !year.includes(qYear)) return false;
+        if (qIsbn   && !isbn.includes(qIsbn)) return false;
+        return true;
     });
 
-    // Render the filtered books
-    renderFilteredBooks(filteredBooks);
+    renderBooksList(filteredBooks);
 }
+    
 
 // Helper function to reset search fields dynamically
 function resetSearchFields() {
@@ -62,29 +49,42 @@ function resetSearchFields() {
     });
 }
 
-function renderFilteredBooks(filteredBooks) {
-    const tableBody = document.getElementById("book-table");
-    tableBody.innerHTML = ""; // Clear existing rows
+function renderBooksList(list) {
+  const tableBody = document.getElementById("book-table");
+  tableBody.innerHTML = "";
 
-    // Loop through the filtered books and add them to the table
-    filteredBooks.forEach(book => {
-        let row = document.createElement("tr");
+  list.forEach(book => {
+    let coverPath;
 
-        row.innerHTML = `
-            <td>${book.title}</td>
-            <td>${book.author}</td>
-            <td>${book.year}</td>
-            <td>${book.isbn}</td>
-            <td>${book.categories}</td>
-            <td>
-                <button class="kindle-btn" data-file="${book.filePath}">Send to Kindle</button>
-                <button class="kobo-btn" data-file="${book.filePath}">Send to Kobo</button>
-            </td>
-        `;
+    if (book.coverPath) {
+      const relativePath = book.coverPath.replace("/app/hdd/books/", "");
+      coverPath = `${basePath}/books/` +
+        relativePath.split("/").map(encodeURIComponent).join("/");
+    } else {
+      coverPath = `${basePath}/images/old-vintage-book-clipart-design-illustration-free-png.png`;
+    }
 
-        tableBody.appendChild(row);
-    });
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>
+        <img src="${coverPath}" alt="Cover" width="50"
+             onerror="this.src='${basePath}/images/old-vintage-book-clipart-design-illustration-free-png.png'">
+      </td>
+      <td>${book.title}</td>
+      <td>${book.author}</td>
+      <td>${book.year || "N/A"}</td>
+      <td>${book.categories || "N/A"}</td>
+      <td>
+        <button class="kindle-btn" data-file="${book.filePath}">📩 Kindle</button>
+        <button class="kobo-btn" data-file="${book.filePath}">📩 Kobo</button>
+      </td>
+    `;
+    tableBody.appendChild(row);
+  });
+
+  attachEventListeners();
 }
+
 
 function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -121,44 +121,7 @@ async function loadBooks(page = 1) {
 
 // 🎨 Render Books in Table
 function renderBooks() {
-    const tableBody = document.getElementById("book-table");
-    tableBody.innerHTML = "";
-
-    booksData.forEach(book => {
-        let coverPath;
-
-        if (book.coverPath) {
-            const relativePath = book.coverPath.replace("/app/hdd/books/", "");
-            coverPath = `${basePath}/books/` +
-              relativePath
-                .split("/")
-                .map(segment => encodeURIComponent(segment))
-                .join("/");
-        } else {
-            coverPath = `${basePath}/images/old-vintage-book-clipart-design-illustration-free-png.png`;
-        }
-
-    
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>
-                <img src="${coverPath}" 
-                     alt="Cover" width="50" 
-                     onerror="this.src='/images/old-vintage-book-clipart-design-illustration-free-png.png'">
-            </td>
-            <td>${book.title}</td>
-            <td>${book.author}</td>
-            <td>${book.year || "N/A"}</td>
-            <td>${book.categories || "N/A"}</td>
-            <td>
-                <button class="kindle-btn" data-file="${book.filePath}">📩 Kindle</button>
-                <button class="kobo-btn" data-file="${book.filePath}">📩 Kobo</button>
-            </td>
-        `;
-        tableBody.appendChild(row);
-    });
-
-    attachEventListeners();
+    renderBooksList(booksData);
 }
 
 // 🔗 Attach Button Listeners
